@@ -1,0 +1,92 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse  = FALSE,
+  echo      = TRUE,
+  message   = FALSE, 
+  warning   = FALSE,
+  error     = TRUE,
+  comment   = "#>",
+  dpi       = 300, 
+  out.width = "100%",
+  fig.path  = "man/figures/README-"
+)
+```
+
+# {careroll}
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+
+## Installation
+
+You can install the development version of careroll from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("andrewallenbruce/careroll", build_vignettes = TRUE)
+```
+
+``` r
+# install.packages("remotes")
+remotes::install_github("andrewallenbruce/careroll", build_vignettes = TRUE)
+```
+
+```{r echo=TRUE}
+library(careroll)
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+cr <- careroll()
+```
+
+ National totals by Year
+
+```{r}
+cr |> dplyr::filter(month == "Year", 
+                    level == "National")
+```
+
+State totals by Year
+
+```{r}
+cr |> dplyr::filter(month == "Year", 
+                    level == "State")
+```
+County totals by Year
+
+```{r}
+cr |> dplyr::filter(month == "Year", 
+                    level == "County")
+```
+
+National totals by Month
+
+```{r}
+cr |> dplyr::filter(month != "Year", 
+                    level == "National")
+```
+
+State totals by Month
+
+```{r}
+cr |> dplyr::filter(month != "Year", 
+                    level == "State")
+```
+
+County totals by Month
+
+```{r}
+cr |> dplyr::filter(month != "Year", 
+                    level == "County")
+```
