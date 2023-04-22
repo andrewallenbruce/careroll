@@ -30,25 +30,38 @@ library(careroll)
 ### National
 
 ``` r
-# Medicare Beneficiaries
-levels(period = "year", level = "national", group = "total") |> 
-  dplyr::mutate(pct_orig = round((bene_orig / bene_tot) * 100, digits = 2),
-                pct_ma = round((bene_ma_oth / bene_tot) * 100, digits = 2),
-                change_ab_tot = bene_tot - dplyr::lag(bene_tot, order_by = year),
-                change_rel_tot = round(change_ab_tot / dplyr::lag(bene_tot, order_by = year) * 100, 
-                                       digits = 2)) |> 
-  dplyr::relocate(c("change_ab_tot", "change_rel_tot"), .after = bene_tot)
+# Total Medicare Beneficiaries
+yr_nat_tot <- levels(period = "year", level = "national", group = "total") |> 
+  dplyr::select(!c(bene_orig, bene_ma_oth)) |> 
+  dplyr::mutate(chg_abs_tot = bene_tot - dplyr::lag(bene_tot, order_by = year),
+                chg_rel_tot = round(chg_abs_tot / dplyr::lag(bene_tot, order_by = year) * 100, digits = 2),
+                roll_mean = slider::slide_mean(bene_tot, before = 1)) |> 
+  dplyr::relocate(c("roll_mean", "chg_abs_tot", "chg_rel_tot"), .after = bene_tot)
 ```
 
-    #> # A tibble: 5 × 8
-    #>    year bene_tot change_ab_tot change_rel_tot bene_orig bene_ma_oth pct_orig
-    #>   <int>    <dbl>         <dbl>          <dbl>     <dbl>       <dbl>    <dbl>
-    #> 1  2017 58457244            NA          NA     38667830    19789414     66.2
-    #> 2  2018 59989883       1532639           2.62  38665082    21324800     64.4
-    #> 3  2019 61514510       1524627           2.54  38577012    22937498     62.7
-    #> 4  2020 62840267       1325757           2.16  37776345    25063922     60.1
-    #> 5  2021 63905513       1065246           1.7   36369426    27536087     56.9
-    #> # ℹ 1 more variable: pct_ma <dbl>
+``` r
+levels(period = "year", level = "national", group = "total") |> 
+  dplyr::mutate(pct_orig = round((bene_orig / bene_tot) * 100, digits = 2),
+                pct_ma = round((bene_ma_oth / bene_tot) * 100, digits = 2)) |> 
+  dplyr::mutate(chg_abs_orig = bene_orig - dplyr::lag(bene_orig, order_by = year),
+                chg_rel_orig = round(chg_abs_orig / dplyr::lag(bene_orig, order_by = year) * 100, digits = 2)) |> 
+  dplyr::relocate(c("chg_abs_orig", "chg_rel_orig"), .after = bene_orig) |> 
+  dplyr::mutate(chg_abs_ma = bene_ma_oth - dplyr::lag(bene_ma_oth, order_by = year),
+                chg_rel_ma = round(chg_abs_ma / dplyr::lag(bene_ma_oth, order_by = year) * 100, digits = 2)) |> 
+  dplyr::relocate(c("chg_abs_ma", "chg_rel_ma"), .after = bene_ma_oth) |> 
+  dplyr::select(-bene_tot) |> 
+  dplyr::select(year, bene_orig, bene_ma_oth, dplyr::starts_with("pct"), dplyr::starts_with("chg_abs"), dplyr::starts_with("chg_rel"))
+```
+
+    #> # A tibble: 5 × 9
+    #>    year bene_orig bene_ma_oth pct_orig pct_ma chg_abs_orig chg_abs_ma
+    #>   <int>     <dbl>       <dbl>    <dbl>  <dbl>        <dbl>      <dbl>
+    #> 1  2017  38667830    19789414     66.2   33.8           NA         NA
+    #> 2  2018  38665082    21324800     64.4   35.6        -2748    1535386
+    #> 3  2019  38577012    22937498     62.7   37.3       -88070    1612698
+    #> 4  2020  37776345    25063922     60.1   39.9      -800667    2126424
+    #> 5  2021  36369426    27536087     56.9   43.1     -1406919    2472165
+    #> # ℹ 2 more variables: chg_rel_orig <dbl>, chg_rel_ma <dbl>
 
 ``` r
 # Aged Beneficiaries
@@ -112,23 +125,65 @@ levels(period = "year", level = "national", group = "partD")
 
 ``` r
 # Medicare Beneficiaries
-levels(period = "year", level = "state", group = "total")
+levels(period = "year", level = "state", group = "total") |> 
+  dplyr::arrange(state, year, dplyr::desc(bene_tot)) |> 
+  print(n = 50)
 ```
 
     #> # A tibble: 285 × 6
     #>     year state state_name           bene_tot bene_orig bene_ma_oth
     #>    <int> <chr> <chr>                   <dbl>     <dbl>       <dbl>
-    #>  1  2017 AL    Alabama               1007423    640531      366892
-    #>  2  2017 AK    Alaska                  91879     90549        1330
-    #>  3  2017 AZ    Arizona               1226671    753929      472743
-    #>  4  2017 AR    Arkansas               616231    480223      136008
-    #>  5  2017 CA    California            5965489   3473379     2492111
-    #>  6  2017 CO    Colorado               847702    530148      317554
-    #>  7  2017 CT    Connecticut            654718    469847      184871
-    #>  8  2017 DE    Delaware               193585    171150       22435
-    #>  9  2017 DC    District of Columbia    91051     76569       14481
-    #> 10  2017 FL    Florida               4295216   2468028     1827188
-    #> # ℹ 275 more rows
+    #>  1  2017 AK    Alaska                  91879     90549        1330
+    #>  2  2018 AK    Alaska                  96213     94698        1514
+    #>  3  2019 AK    Alaska                 100297     98629        1668
+    #>  4  2020 AK    Alaska                 104465    102635        1830
+    #>  5  2021 AK    Alaska                 108167    105882        2285
+    #>  6  2017 AL    Alabama               1007423    640531      366892
+    #>  7  2018 AL    Alabama               1027493    624503      402990
+    #>  8  2019 AL    Alabama               1046588    605614      440974
+    #>  9  2020 AL    Alabama               1062565    576690      485875
+    #> 10  2021 AL    Alabama               1070553    529079      541474
+    #> 11  2017 AR    Arkansas               616231    480223      136008
+    #> 12  2018 AR    Arkansas               627641    476217      151424
+    #> 13  2019 AR    Arkansas               637556    468473      169083
+    #> 14  2020 AR    Arkansas               646920    453946      192975
+    #> 15  2021 AR    Arkansas               653386    430843      222544
+    #> 16  2017 AS    American Samoa           3989      3842         147
+    #> 17  2018 AS    American Samoa           4028      3823         205
+    #> 18  2019 AS    American Samoa           4569      4354         216
+    #> 19  2020 AS    American Samoa           4716      4446         269
+    #> 20  2021 AS    American Samoa           4765      4460         305
+    #> 21  2017 AZ    Arizona               1226671    753929      472743
+    #> 22  2018 AZ    Arizona               1271312    775111      496201
+    #> 23  2019 AZ    Arizona               1325833    789199      536634
+    #> 24  2020 AZ    Arizona               1370074    788009      582065
+    #> 25  2021 AZ    Arizona               1400409    767765      632643
+    #> 26  2017 CA    California            5965489   3473379     2492111
+    #> 27  2018 CA    California            6124095   3511605     2612490
+    #> 28  2019 CA    California            6277166   3528546     2748620
+    #> 29  2020 CA    California            6411106   3503899     2907207
+    #> 30  2021 CA    California            6501113   3438632     3062481
+    #> 31  2017 CO    Colorado               847702    530148      317554
+    #> 32  2018 CO    Colorado               881044    548114      332929
+    #> 33  2019 CO    Colorado               911545    530678      380867
+    #> 34  2020 CO    Colorado               938949    527895      411054
+    #> 35  2021 CO    Colorado               961765    518953      442812
+    #> 36  2017 CT    Connecticut            654718    469847      184871
+    #> 37  2018 CT    Connecticut            667724    421231      246493
+    #> 38  2019 CT    Connecticut            680357    398772      281585
+    #> 39  2020 CT    Connecticut            692023    382148      309875
+    #> 40  2021 CT    Connecticut            702579    363536      339044
+    #> 41  2017 DC    District of Columbia    91051     76569       14481
+    #> 42  2018 DC    District of Columbia    92528     76020       16508
+    #> 43  2019 DC    District of Columbia    94058     75614       18444
+    #> 44  2020 DC    District of Columbia    94126     73305       20822
+    #> 45  2021 DC    District of Columbia    94070     70236       23833
+    #> 46  2017 DE    Delaware               193585    171150       22435
+    #> 47  2018 DE    Delaware               201092    173181       27911
+    #> 48  2019 DE    Delaware               208278    174473       33805
+    #> 49  2020 DE    Delaware               215724    174831       40893
+    #> 50  2021 DE    Delaware               222850    171170       51680
+    #> # ℹ 235 more rows
 
 ``` r
 # Aged Beneficiaries
