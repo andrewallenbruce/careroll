@@ -42,6 +42,282 @@ careroll <- function() {
                   bene_rx_pdp                 = prscrptn_drug_pdp_benes,
                   bene_rx_mapd                = prscrptn_drug_mapd_benes) |>
     dplyr::mutate(fips = dplyr::na_if(fips, "")) |>
-    dplyr::mutate(dplyr::across(dplyr::contains("bene"), as.numeric))
+    dplyr::mutate(dplyr::across(dplyr::contains("bene"), as.numeric)) |>
+    dplyr::filter(state != "UK") |>
+    dplyr::filter(county != "Unknown")
 
+}
+
+#' Download and sort Medicare Beneficiary Enrollment Data
+#' @param period year, month
+#' @param level national, state, county
+#' @param group total, aged, disabled, partAB, partD
+#' @return A `tibble`
+#' @examples
+#' \dontrun{
+#' groups()
+#' }
+#' @autoglobal
+#' @export
+levels <- function(period = c("year", "month"),
+                   level  = c("national", "state", "county"),
+                   group  = c("total", "aged", "disabled",
+                              "partAB", "partD")) {
+
+  if (period == "year") {
+    if (level == "national") {
+      if (group == "total") {
+
+    return(careroll() |>
+      dplyr::filter(month == "Year",
+                    level == "National") |>
+          dplyr::select(year, bene_tot, bene_orig, bene_ma_oth))
+
+      }
+
+      if (group == "aged") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "National") |>
+          dplyr::select(year, bene_tot, dplyr::contains("aged")))
+
+      }
+
+      if (group == "disabled") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "National") |>
+          dplyr::select(year, bene_tot, dplyr::contains("dsb")))
+
+      }
+
+      if (group == "partAB") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "National") |>
+          dplyr::select(year, bene_tot, dplyr::contains("ab")))
+
+      }
+
+      if (group == "partD") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "National") |>
+          dplyr::select(year, bene_tot, dplyr::contains("rx")))
+
+      }
+    }
+
+    if (level == "state") {
+      if (group == "total") {
+
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "State") |>
+          dplyr::select(year, state, state_name,
+                        bene_tot, bene_orig, bene_ma_oth))
+
+      }
+
+      if (group == "aged") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "State") |>
+          dplyr::select(year, state, state_name,
+                        bene_tot, dplyr::contains("aged")))
+
+      }
+
+      if (group == "disabled") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "State") |>
+          dplyr::select(year, state, state_name,
+                        bene_tot, dplyr::contains("dsb")))
+
+      }
+
+      if (group == "partAB") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "State") |>
+          dplyr::select(year, state, state_name,
+                        bene_tot, dplyr::contains("ab")))
+
+      }
+
+      if (group == "partD") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "State") |>
+          dplyr::select(year, state, state_name,
+                        bene_tot, dplyr::contains("ab")))
+
+      }
+    }
+
+    if (level == "county") {
+      if (group == "total") {
+
+        return(careroll() |>
+      dplyr::filter(month == "Year",
+                    level == "County") |>
+      dplyr::select(year, state, state_name, county,
+                    bene_tot, bene_orig, bene_ma_oth))
+
+      }
+
+      if (group == "aged") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "County") |>
+          dplyr::select(year, state, state_name, county,
+                        bene_tot, dplyr::contains("aged")))
+
+      }
+
+      if (group == "disabled") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "County") |>
+          dplyr::select(year, state, state_name, county,
+                        bene_tot, dplyr::contains("dsb")))
+
+      }
+
+      if (group == "partAB") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "County") |>
+          dplyr::select(year, state, state_name, county,
+                        bene_tot, dplyr::contains("ab")))
+
+      }
+
+      if (group == "partD") {
+        return(careroll() |>
+          dplyr::filter(month == "Year",
+                        level == "County") |>
+          dplyr::select(year, state, state_name, county,
+                        bene_tot, dplyr::contains("rx")))
+
+      }
+    }
+  }
+
+  if (period == "month") {
+    if (level == "national") {
+      if (group == "total") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "National") |>
+                 dplyr::select(year, month, bene_tot,
+                               bene_orig, bene_ma_oth))
+      }
+      if (group == "aged") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "National") |>
+                 dplyr::select(year, month, bene_tot,
+                               dplyr::contains("aged")))
+      }
+      if (group == "disabled") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "National") |>
+                 dplyr::select(year, month, bene_tot,
+                               dplyr::contains("dsb")))
+      }
+      if (group == "partAB") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "National") |>
+                 dplyr::select(year, month, bene_tot,
+                               dplyr::contains("ab")))
+      }
+      if (group == "partD"){
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "National") |>
+                 dplyr::select(year, month, bene_tot,
+                               dplyr::contains("rx")))
+      }
+    }
+
+    if (level == "state") {
+      if (group == "total") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "State") |>
+                 dplyr::select(year, month, state, state_name,
+                               bene_tot, bene_orig, bene_ma_oth))
+      }
+      if (group == "aged") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "State") |>
+        dplyr::select(year, month, state, state_name,
+                      bene_tot, dplyr::contains("aged")))
+      }
+      if (group == "disabled") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "State") |>
+                 dplyr::select(year, month, state, state_name,
+                               bene_tot, dplyr::contains("dsb")))
+      }
+      if (group == "partAB") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "State") |>
+                 dplyr::select(year, month, state, state_name,
+                               bene_tot, dplyr::contains("ab")))
+      }
+      if (group == "partD"){
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "State") |>
+                 dplyr::select(year, month, state, state_name,
+                               bene_tot, dplyr::contains("rx")))
+      }
+    }
+
+    if (level == "county") {
+      if (group == "total") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "County") |>
+                 dplyr::select(year, month, state, state_name, county,
+                               bene_tot, bene_orig, bene_ma_oth))
+      }
+      if (group == "aged") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "County") |>
+                 dplyr::select(year, month, state, state_name, county,
+                               bene_tot, dplyr::contains("aged")))
+      }
+      if (group == "disabled") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "County") |>
+                 dplyr::select(year, month, state, state_name, county,
+                               bene_tot, dplyr::contains("dsb")))
+      }
+      if (group == "partAB") {
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "County") |>
+                 dplyr::select(year, month, state, state_name, county,
+                               bene_tot, dplyr::contains("ab")))
+      }
+      if (group == "partD"){
+        return(careroll() |>
+                 dplyr::filter(month != "Year",
+                               level == "County") |>
+                 dplyr::select(year, month, state, state_name, county,
+                               bene_tot, dplyr::contains("rx")))
+      }
+    }
+  }
 }

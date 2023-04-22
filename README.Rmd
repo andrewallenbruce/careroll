@@ -42,51 +42,199 @@ remotes::install_github("andrewallenbruce/careroll", build_vignettes = TRUE)
 library(careroll)
 ```
 
-## Example
+## Year
 
-This is a basic example which shows you how to solve a common problem:
-
-```{r example}
-cr <- careroll()
-```
-
- National totals by Year
+### National
 
 ```{r}
-cr |> dplyr::filter(month == "Year", 
-                    level == "National")
+# Medicare Beneficiaries
+levels(period = "year", level = "national", group = "total") |> 
+  dplyr::mutate(pct_orig = round((bene_orig / bene_tot) * 100, digits = 2),
+                pct_ma = round((bene_ma_oth / bene_tot) * 100, digits = 2),
+                change_ab_tot = bene_tot - dplyr::lag(bene_tot, order_by = year),
+                change_rel_tot = round(change_ab_tot / dplyr::lag(bene_tot, order_by = year) * 100, 
+                                       digits = 2)) |> 
+  dplyr::relocate(c("change_ab_tot", "change_rel_tot"), .after = bene_tot)
 ```
 
-State totals by Year
 
 ```{r}
-cr |> dplyr::filter(month == "Year", 
-                    level == "State")
-```
-County totals by Year
-
-```{r}
-cr |> dplyr::filter(month == "Year", 
-                    level == "County")
+# Aged Beneficiaries
+levels(period = "year", level = "national", group = "aged")
 ```
 
-National totals by Month
-
 ```{r}
-cr |> dplyr::filter(month != "Year", 
-                    level == "National")
+# Disabled Beneficiaries
+levels(period = "year", level = "national", group = "disabled")
 ```
 
-State totals by Month
 
 ```{r}
-cr |> dplyr::filter(month != "Year", 
-                    level == "State")
+# Beneficiaries with Hospital (Part A) and Supplementary (Part B)
+levels(period = "year", level = "national", group = "partAB")
 ```
 
-County totals by Month
 
 ```{r}
-cr |> dplyr::filter(month != "Year", 
-                    level == "County")
+# Prescription Drug (Part D) Beneficiaries
+levels(period = "year", level = "national", group = "partD")
+```
+
+
+<br>
+
+### State
+
+```{r}
+# Medicare Beneficiaries
+levels(period = "year", level = "state", group = "total")
+```
+
+```{r}
+# Aged Beneficiaries
+levels(period = "year", level = "state", group = "aged")
+```
+
+```{r}
+# Disabled Beneficiaries
+levels(period = "year", level = "state", group = "disabled")
+```
+
+```{r}
+# Beneficiaries with Hospital (Part A) and Supplementary (Part B)
+levels(period = "year", level = "state", group = "partAB")
+```
+
+```{r}
+# Prescription Drug (Part D) Beneficiaries
+levels(period = "year", level = "state", group = "partD")
+```
+
+
+<br>
+
+### County
+
+```{r}
+# Medicare Beneficiaries
+levels(period = "year", level = "county", group = "total")
+```
+
+
+```{r}
+# Aged Beneficiaries
+levels(period = "year", level = "county", group = "aged")
+```
+
+```{r}
+# Disabled Beneficiaries
+levels(period = "year", level = "county", group = "disabled")
+```
+
+```{r}
+# Beneficiaries with Hospital (Part A) and Supplementary (Part B)
+levels(period = "year", level = "county", group = "partAB")
+```
+
+
+```{r}
+# Prescription Drug (Part D) Beneficiaries
+levels(period = "year", level = "county", group = "partD")
+```
+
+
+## Month
+
+### National
+
+```{r}
+# Medicare Beneficiaries
+levels(period = "month", level = "national", group = "total")
+```
+
+
+```{r}
+# Aged Beneficiaries
+levels(period = "month", level = "national", group = "aged")
+```
+
+
+```{r}
+# Disabled Beneficiaries
+levels(period = "month", level = "national", group = "disabled")
+```
+
+
+```{r}
+# Beneficiaries with Hospital (Part A) and Supplementary (Part B)
+levels(period = "month", level = "national", group = "partAB")
+```
+
+
+```{r}
+# Prescription Drug (Part D) Beneficiaries
+levels(period = "month", level = "national", group = "partD")
+```
+
+### State
+
+```{r}
+# Medicare Beneficiaries
+levels(period = "month", level = "state", group = "total")
+```
+
+
+```{r}
+# Aged Beneficiaries
+levels(period = "month", level = "state", group = "aged")
+```
+
+
+```{r}
+# Disabled Beneficiaries
+levels(period = "month", level = "state", group = "disabled")
+```
+
+
+```{r}
+# Beneficiaries with Hospital (Part A) and Supplementary (Part B)
+levels(period = "month", level = "state", group = "partAB")
+```
+
+
+```{r}
+# Prescription Drug (Part D) Beneficiaries
+levels(period = "month", level = "state", group = "partD")
+```
+
+### County
+
+
+```{r}
+# Medicare Beneficiaries
+levels(period = "month", level = "county", group = "total")
+```
+
+
+```{r}
+# Aged Beneficiaries
+levels(period = "month", level = "county", group = "aged")
+```
+
+
+```{r}
+# Disabled Beneficiaries
+levels(period = "month", level = "county", group = "disabled")
+```
+
+
+```{r}
+# Beneficiaries with Hospital (Part A) and Supplementary (Part B)
+levels(period = "month", level = "county", group = "partAB")
+```
+
+
+```{r}
+# Prescription Drug (Part D) Beneficiaries
+levels(period = "month", level = "county", group = "partD")
 ```
