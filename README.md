@@ -37,7 +37,18 @@ yr_nat_tot <- levels(period = "year", level = "national", group = "total") |>
                 chg_rel_tot = round(chg_abs_tot / dplyr::lag(bene_tot, order_by = year) * 100, digits = 2),
                 roll_mean = slider::slide_mean(bene_tot, before = 1)) |> 
   dplyr::relocate(c("roll_mean", "chg_abs_tot", "chg_rel_tot"), .after = bene_tot)
+
+yr_nat_tot
 ```
+
+    #> # A tibble: 5 × 5
+    #>    year bene_tot roll_mean chg_abs_tot chg_rel_tot
+    #>   <int>    <dbl>     <dbl>       <dbl>       <dbl>
+    #> 1  2017 58457244 58457244           NA       NA   
+    #> 2  2018 59989883 59223564.     1532639        2.62
+    #> 3  2019 61514510 60752196.     1524627        2.54
+    #> 4  2020 62840267 62177388.     1325757        2.16
+    #> 5  2021 63905513 63372890      1065246        1.7
 
 ``` r
 levels(period = "year", level = "national", group = "total") |> 
