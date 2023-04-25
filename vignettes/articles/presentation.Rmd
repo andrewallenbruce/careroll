@@ -1,0 +1,148 @@
+---
+title: "Presentation Examples"
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse  = FALSE,
+  echo      = TRUE,
+  message   = FALSE, 
+  warning   = FALSE,
+  error     = TRUE,
+  comment   = "#>",
+  dpi       = 300, 
+  out.width = "100%",
+  fig.path  = "man/figures/README-"
+)
+options(scipen = 999)
+```
+
+```{r setup}
+library(careroll)
+```
+
+# Yearly
+
+## National
+
+### Total
+
+```{r}
+total_yr <- levels(period = "year", level = "national", group = "total")
+```
+
+
+```{r}
+total_yr |> 
+  dplyr::filter(year == 2017 | year == 2021) |> 
+  change_year(bene_tot) |> 
+  gt::gt() |> 
+  gt::fmt_number(columns = c(bene_tot), decimals = 0) |> 
+  gt::fmt_number(columns = c(change_abs), decimals = 0, force_sign = TRUE) |> 
+  gt::fmt_percent(columns = change_pct, decimals = 2, force_sign = TRUE) |> 
+  gt::sub_missing(columns = dplyr::everything(), missing_text = "--") |> 
+  gtExtras::gt_theme_538()
+```
+
+
+```{r}
+total_yr |> 
+  dplyr::mutate(rolling_mean = slider::slide_mean(bene_tot, before = 1)) |> 
+  change_year(bene_tot) |> 
+  gt::gt() |> 
+  gt::fmt_number(columns = c(bene_tot, rolling_mean), decimals = 0) |> 
+  gt::fmt_number(columns = c(change_abs), decimals = 0, force_sign = TRUE) |> 
+  gt::fmt_percent(columns = change_pct, decimals = 2, force_sign = TRUE) |> 
+  gt::sub_missing(columns = dplyr::everything(), missing_text = "--") |> 
+  gtExtras::gt_theme_538()
+```
+
+### Orig & MA
+
+```{r}
+origMA_yr <- levels(period = "year", level = "national", group = "origMA")
+```
+
+
+```{r}
+origMA_yr |> 
+  dplyr::mutate(pct_orig = bene_orig / (bene_orig + bene_ma_oth),
+                pct_ma = bene_ma_oth / (bene_orig + bene_ma_oth)) |> 
+  change_year(bene_orig) |> 
+  dplyr::rename(orig_change = change_abs, orig_pct_change = change_pct) |> 
+  change_year(bene_ma_oth) |> 
+  dplyr::rename(ma_change = change_abs, ma_pct_change = change_pct) |> 
+  gt::gt() |> 
+  gt::fmt_number(columns = c(bene_orig, bene_ma_oth), decimals = 0) |> 
+  gt::fmt_number(columns = c(orig_change, ma_change), decimals = 0, force_sign = TRUE) |> 
+  gt::fmt_percent(columns = c(pct_orig, pct_ma), decimals = 2) |> 
+  gt::fmt_percent(columns = c(orig_pct_change, ma_pct_change), decimals = 2, force_sign = TRUE) |> 
+  gt::sub_missing(columns = dplyr::everything(), missing_text = "--") |> 
+  gt::cols_merge_n_pct(col_n = bene_orig, col_pct = pct_orig) |> 
+  gt::cols_merge_n_pct(col_n = bene_ma_oth, col_pct = pct_ma) |> 
+  gt::cols_merge_n_pct(col_n = orig_change, col_pct = orig_pct_change) |> 
+  gt::cols_merge_n_pct(col_n = ma_change, col_pct = ma_pct_change) |> 
+  gt::cols_label(bene_orig = "Original Medicare", bene_ma_oth = "Medicare Advantage", orig_change = "Original YOY Change", ma_change = "MA YOY Change") |> 
+  gtExtras::gt_theme_538()
+```
+
+
+### Aged
+
+```{r}
+# Aged Beneficiaries
+aged_yr <- levels(period = "year", level = "national", group = "aged")
+```
+
+```{r}
+aged_yr |> 
+  dplyr::mutate(pct_aged = bene_aged_tot / bene_tot,
+                pct_esrd = bene_aged_esrd / bene_aged_tot,
+                pct_no_esrd = bene_aged_no_esrd / bene_aged_tot) |> 
+  change_year(bene_aged_tot) |> 
+  dplyr::rename(aged_change = change_abs, aged_pct_change = change_pct) |> 
+  gt::gt() |> 
+  gt::cols_hide(columns = c(bene_tot)) |> 
+  gt::fmt_number(columns = c(bene_aged_tot, bene_aged_esrd, bene_aged_no_esrd), decimals = 0) |> 
+  gt::fmt_number(columns = c(aged_change), decimals = 0, force_sign = TRUE) |> 
+  gt::fmt_percent(columns = c(pct_aged, pct_esrd, pct_no_esrd), decimals = 2) |> 
+  gt::fmt_percent(columns = c(aged_pct_change), decimals = 2, force_sign = TRUE) |> 
+  gt::sub_missing(columns = dplyr::everything(), missing_text = "--") |> 
+  gt::cols_merge_n_pct(col_n = bene_aged_tot, col_pct = pct_aged) |> 
+  gt::cols_merge_n_pct(col_n = bene_aged_esrd, col_pct = pct_esrd) |> 
+  gt::cols_merge_n_pct(col_n = bene_aged_no_esrd, col_pct = pct_no_esrd) |> 
+  gt::cols_merge_n_pct(col_n = aged_change, col_pct = aged_pct_change) |> 
+  gt::cols_label(bene_aged_tot = "Aged Total", bene_aged_esrd = "Aged with ESRD", bene_aged_no_esrd = "Aged without ESRD", aged_change = "YOY Change") |> 
+  gtExtras::gt_theme_538()
+```
+
+
+
+### Disabled
+
+```{r}
+dsb_yr <- levels(period = "year", level = "national", group = "disabled")
+```
+
+
+```{r}
+dsb_yr |> 
+  dplyr::mutate(pct_dsb = bene_dsb_tot / bene_tot,
+                pct_dsb_esrd = bene_dsb_esrd_and_only_esrd / bene_dsb_tot,
+                pct_dsb_no_esrd = bene_dsb_no_esrd / bene_dsb_tot) |> 
+  change_year(bene_dsb_tot) |> 
+  dplyr::rename(dsb_change = change_abs, dsb_pct_change = change_pct) |> 
+  gt::gt() |> 
+  gt::cols_hide(columns = c(bene_tot)) |> 
+  gt::fmt_number(columns = c(bene_dsb_tot, bene_dsb_esrd_and_only_esrd, bene_dsb_no_esrd), decimals = 0) |> 
+  gt::fmt_number(columns = c(dsb_change), decimals = 0, force_sign = TRUE) |> 
+  gt::fmt_percent(columns = c(pct_dsb, pct_dsb_esrd, pct_dsb_no_esrd), decimals = 2) |> 
+  gt::fmt_percent(columns = c(dsb_pct_change), decimals = 2, force_sign = TRUE) |> 
+  gt::sub_missing(columns = dplyr::everything(), missing_text = "--") |> 
+  gt::cols_merge_n_pct(col_n = bene_dsb_tot, col_pct = pct_dsb) |> 
+  gt::cols_merge_n_pct(col_n = bene_dsb_esrd_and_only_esrd, col_pct = pct_dsb_esrd) |> 
+  gt::cols_merge_n_pct(col_n = bene_dsb_no_esrd, col_pct = pct_dsb_no_esrd) |> 
+  gt::cols_merge_n_pct(col_n = dsb_change, col_pct = dsb_pct_change) |> 
+  gt::cols_label(bene_dsb_tot = "Disabled", bene_dsb_esrd_and_only_esrd = "Disabled with ESRD", bene_dsb_no_esrd = "Disabled without ESRD", dsb_change = "Disabled Change") |> 
+  gtExtras::gt_theme_538()
+```

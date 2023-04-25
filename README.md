@@ -25,371 +25,223 @@ remotes::install_github("andrewallenbruce/careroll", build_vignettes = TRUE)
 library(careroll)
 ```
 
-## Year
+# Yearly
 
-### National
+## National
+
+### Total
 
 ``` r
-# Total Medicare Beneficiaries
-yr_nat_tot <- levels(period = "year", level = "national", group = "total") |> 
-  dplyr::select(!c(bene_orig, bene_ma_oth)) |> 
-  dplyr::mutate(chg_abs_tot = bene_tot - dplyr::lag(bene_tot, order_by = year),
-                chg_rel_tot = round(chg_abs_tot / dplyr::lag(bene_tot, order_by = year) * 100, digits = 2),
-                roll_mean = slider::slide_mean(bene_tot, before = 1)) |> 
-  dplyr::relocate(c("roll_mean", "chg_abs_tot", "chg_rel_tot"), .after = bene_tot)
+total_yr <- levels(period = "year", level = "national", group = "total")
 
-yr_nat_tot
+total_yr |> 
+  dplyr::filter(year == 2017 | year == 2021) |> 
+  change_year(bene_tot)
+```
+
+    #> # A tibble: 2 × 4
+    #>    year bene_tot change_abs change_pct
+    #>   <int>    <dbl>      <dbl>      <dbl>
+    #> 1  2017 58457244         NA    NA     
+    #> 2  2021 63905513    5448269     0.0932
+
+``` r
+total_yr |> 
+  dplyr::mutate(rolling_mean = slider::slide_mean(bene_tot, before = 1)) |> 
+  change_year(bene_tot)
 ```
 
     #> # A tibble: 5 × 5
-    #>    year bene_tot roll_mean chg_abs_tot chg_rel_tot
-    #>   <int>    <dbl>     <dbl>       <dbl>       <dbl>
-    #> 1  2017 58457244 58457244           NA       NA   
-    #> 2  2018 59989883 59223564.     1532639        2.62
-    #> 3  2019 61514510 60752196.     1524627        2.54
-    #> 4  2020 62840267 62177388.     1325757        2.16
-    #> 5  2021 63905513 63372890      1065246        1.7
+    #>    year bene_tot rolling_mean change_abs change_pct
+    #>   <int>    <dbl>        <dbl>      <dbl>      <dbl>
+    #> 1  2017 58457244    58457244          NA    NA     
+    #> 2  2018 59989883    59223564.    1532639     0.0262
+    #> 3  2019 61514510    60752196.    1524627     0.0254
+    #> 4  2020 62840267    62177388.    1325757     0.0216
+    #> 5  2021 63905513    63372890     1065246     0.0170
+
+### Orig & MA
 
 ``` r
-levels(period = "year", level = "national", group = "total") |> 
-  dplyr::mutate(pct_orig = round((bene_orig / bene_tot) * 100, digits = 2),
-                pct_ma = round((bene_ma_oth / bene_tot) * 100, digits = 2)) |> 
-  dplyr::mutate(chg_abs_orig = bene_orig - dplyr::lag(bene_orig, order_by = year),
-                chg_rel_orig = round(chg_abs_orig / dplyr::lag(bene_orig, order_by = year) * 100, digits = 2)) |> 
-  dplyr::relocate(c("chg_abs_orig", "chg_rel_orig"), .after = bene_orig) |> 
-  dplyr::mutate(chg_abs_ma = bene_ma_oth - dplyr::lag(bene_ma_oth, order_by = year),
-                chg_rel_ma = round(chg_abs_ma / dplyr::lag(bene_ma_oth, order_by = year) * 100, digits = 2)) |> 
-  dplyr::relocate(c("chg_abs_ma", "chg_rel_ma"), .after = bene_ma_oth) |> 
-  dplyr::select(-bene_tot) |> 
-  dplyr::select(year, bene_orig, bene_ma_oth, dplyr::starts_with("pct"), dplyr::starts_with("chg_abs"), dplyr::starts_with("chg_rel"))
+origMA_yr <- levels(period = "year", level = "national", group = "origMA")
+
+origMA_yr |> 
+  dplyr::mutate(pct_orig = bene_orig / (bene_orig + bene_ma_oth),
+                pct_ma = bene_ma_oth / (bene_orig + bene_ma_oth)) |> 
+  change_year(bene_orig) |> 
+  dplyr::rename(orig_change = change_abs, orig_pct_change = change_pct) |> 
+  change_year(bene_ma_oth) |> 
+  dplyr::rename(ma_change = change_abs, ma_pct_change = change_pct)
 ```
 
     #> # A tibble: 5 × 9
-    #>    year bene_orig bene_ma_oth pct_orig pct_ma chg_abs_orig chg_abs_ma
-    #>   <int>     <dbl>       <dbl>    <dbl>  <dbl>        <dbl>      <dbl>
-    #> 1  2017  38667830    19789414     66.2   33.8           NA         NA
-    #> 2  2018  38665082    21324800     64.4   35.6        -2748    1535386
-    #> 3  2019  38577012    22937498     62.7   37.3       -88070    1612698
-    #> 4  2020  37776345    25063922     60.1   39.9      -800667    2126424
-    #> 5  2021  36369426    27536087     56.9   43.1     -1406919    2472165
-    #> # ℹ 2 more variables: chg_rel_orig <dbl>, chg_rel_ma <dbl>
+    #>    year bene_orig bene_ma_oth pct_orig pct_ma orig_change orig_pct_change
+    #>   <int>     <dbl>       <dbl>    <dbl>  <dbl>       <dbl>           <dbl>
+    #> 1  2017  38667830    19789414    0.661  0.339          NA      NA        
+    #> 2  2018  38665082    21324800    0.645  0.355       -2748      -0.0000711
+    #> 3  2019  38577012    22937498    0.627  0.373      -88070      -0.00228  
+    #> 4  2020  37776345    25063922    0.601  0.399     -800667      -0.0208   
+    #> 5  2021  36369426    27536087    0.569  0.431    -1406919      -0.0372   
+    #> # ℹ 2 more variables: ma_change <dbl>, ma_pct_change <dbl>
+
+### Aged
 
 ``` r
-# Aged Beneficiaries
-levels(period = "year", level = "national", group = "aged")
+aged_yr <- levels(period = "year", level = "national", group = "aged")
+
+aged_yr |> 
+  dplyr::mutate(pct_aged = bene_aged_tot / bene_tot,
+                pct_esrd = bene_aged_esrd / bene_aged_tot,
+                pct_no_esrd = bene_aged_no_esrd / bene_aged_tot) |> 
+  change_year(bene_aged_tot) |> 
+  dplyr::rename(aged_change = change_abs, aged_pct_change = change_pct)
 ```
 
-    #> # A tibble: 5 × 5
-    #>    year bene_tot bene_aged_tot bene_aged_esrd bene_aged_no_esrd
-    #>   <int>    <dbl>         <dbl>          <dbl>             <dbl>
-    #> 1  2017 58457244      49678033         278642          49399391
-    #> 2  2018 59989883      51303898         290243          51013655
-    #> 3  2019 61514510      52991455         301798          52689658
-    #> 4  2020 62840267      54531919         305080          54226839
-    #> 5  2021 63905513      55858782         305788          55552994
+    #> # A tibble: 5 × 10
+    #>    year bene_tot bene_aged_tot bene_aged_esrd bene_aged_no_esrd pct_aged
+    #>   <int>    <dbl>         <dbl>          <dbl>             <dbl>    <dbl>
+    #> 1  2017 58457244      49678033         278642          49399391    0.850
+    #> 2  2018 59989883      51303898         290243          51013655    0.855
+    #> 3  2019 61514510      52991455         301798          52689658    0.861
+    #> 4  2020 62840267      54531919         305080          54226839    0.868
+    #> 5  2021 63905513      55858782         305788          55552994    0.874
+    #> # ℹ 4 more variables: pct_esrd <dbl>, pct_no_esrd <dbl>, aged_change <dbl>,
+    #> #   aged_pct_change <dbl>
+
+### Disabled
 
 ``` r
-# Disabled Beneficiaries
-levels(period = "year", level = "national", group = "disabled")
+dsb_yr <- levels(period = "year", level = "national", group = "disabled")
+
+dsb_yr |> 
+  dplyr::mutate(pct_dsb = bene_dsb_tot / bene_tot,
+                pct_dsb_esrd = bene_dsb_esrd_and_only_esrd / bene_dsb_tot,
+                pct_dsb_no_esrd = bene_dsb_no_esrd / bene_dsb_tot) |> 
+  change_year(bene_dsb_tot) |> 
+  dplyr::rename(dsb_change = change_abs, dsb_pct_change = change_pct)
 ```
 
-    #> # A tibble: 5 × 5
-    #>    year bene_tot bene_dsb_tot bene_dsb_esrd_and_only_esrd bene_dsb_no_esrd
-    #>   <int>    <dbl>        <dbl>                       <dbl>            <dbl>
-    #> 1  2017 58457244      8779211                      258366          8520845
-    #> 2  2018 59989883      8685985                      261246          8424739
-    #> 3  2019 61514510      8523055                      262179          8260876
-    #> 4  2020 62840267      8308348                      255949          8052399
-    #> 5  2021 63905513      8046731                      249670          7797061
+    #> # A tibble: 5 × 10
+    #>    year bene_tot bene_dsb_tot bene_dsb_esrd_and_only_…¹ bene_dsb_no_esrd pct_dsb
+    #>   <int>    <dbl>        <dbl>                     <dbl>            <dbl>   <dbl>
+    #> 1  2017 58457244      8779211                    258366          8520845   0.150
+    #> 2  2018 59989883      8685985                    261246          8424739   0.145
+    #> 3  2019 61514510      8523055                    262179          8260876   0.139
+    #> 4  2020 62840267      8308348                    255949          8052399   0.132
+    #> 5  2021 63905513      8046731                    249670          7797061   0.126
+    #> # ℹ abbreviated name: ¹​bene_dsb_esrd_and_only_esrd
+    #> # ℹ 4 more variables: pct_dsb_esrd <dbl>, pct_dsb_no_esrd <dbl>,
+    #> #   dsb_change <dbl>, dsb_pct_change <dbl>
+
+### Part A & B
 
 ``` r
 # Beneficiaries with Hospital (Part A) and Supplementary (Part B)
-levels(period = "year", level = "national", group = "partAB")
+partAB_yr <- levels(period = "year", level = "national", group = "partAB")
+
+partAB_yr |> 
+  dplyr::mutate(pct_ab = bene_ab_total / bene_tot,
+                pct_ab_orig = bene_ab_orig / bene_ab_total,
+                pct_ab_ma_oth = bene_ab_ma_oth / bene_ab_total) |> 
+  change_year(bene_ab_total) |> 
+  dplyr::rename(ab_change = change_abs, ab_pct_change = change_pct)
 ```
 
-    #> # A tibble: 5 × 5
-    #>    year bene_tot bene_ab_total bene_ab_orig bene_ab_ma_oth
-    #>   <int>    <dbl>         <dbl>        <dbl>          <dbl>
-    #> 1  2017 58457244      53008234     33242085       19766149
-    #> 2  2018 59989883      54349822     33052639       21297184
-    #> 3  2019 61514510      55653848     32758741       22895108
-    #> 4  2020 62840267      56966865     31934411       25032454
-    #> 5  2021 63905513      58043480     30540086       27503394
+    #> # A tibble: 5 × 10
+    #>    year bene_tot bene_ab_total bene_ab_orig bene_ab_ma_oth pct_ab pct_ab_orig
+    #>   <int>    <dbl>         <dbl>        <dbl>          <dbl>  <dbl>       <dbl>
+    #> 1  2017 58457244      53008234     33242085       19766149  0.907       0.627
+    #> 2  2018 59989883      54349822     33052639       21297184  0.906       0.608
+    #> 3  2019 61514510      55653848     32758741       22895108  0.905       0.589
+    #> 4  2020 62840267      56966865     31934411       25032454  0.907       0.561
+    #> 5  2021 63905513      58043480     30540086       27503394  0.908       0.526
+    #> # ℹ 3 more variables: pct_ab_ma_oth <dbl>, ab_change <dbl>, ab_pct_change <dbl>
+
+### Part D
 
 ``` r
 # Prescription Drug (Part D) Beneficiaries
-levels(period = "year", level = "national", group = "partD")
+partD_yr <- levels(period = "year", level = "national", group = "partD")
+
+partD_yr |> 
+  dplyr::mutate(pct_rx = bene_rx_tot / bene_tot,
+                pct_rx_pdp = bene_rx_pdp / bene_rx_tot,
+                pct_rx_mapd = bene_rx_mapd / bene_rx_tot) |> 
+  change_year(bene_rx_tot) |> 
+  dplyr::rename(rx_change = change_abs, rx_pct_change = change_pct)
 ```
 
-    #> # A tibble: 5 × 5
-    #>    year bene_tot bene_rx_tot bene_rx_pdp bene_rx_mapd
-    #>   <int>    <dbl>       <dbl>       <dbl>        <dbl>
-    #> 1  2017 58457244    42728443    25243684     17484759
-    #> 2  2018 59989883    44249461    25563945     18685516
-    #> 3  2019 61514510    45827091    25583137     20243954
-    #> 4  2020 62840267    47413121    25171949     22241173
-    #> 5  2021 63905513    48823714    24169759     24653955
+    #> # A tibble: 5 × 10
+    #>    year bene_tot bene_rx_tot bene_rx_pdp bene_rx_mapd pct_rx pct_rx_pdp
+    #>   <int>    <dbl>       <dbl>       <dbl>        <dbl>  <dbl>      <dbl>
+    #> 1  2017 58457244    42728443    25243684     17484759  0.731      0.591
+    #> 2  2018 59989883    44249461    25563945     18685516  0.738      0.578
+    #> 3  2019 61514510    45827091    25583137     20243954  0.745      0.558
+    #> 4  2020 62840267    47413121    25171949     22241173  0.755      0.531
+    #> 5  2021 63905513    48823714    24169759     24653955  0.764      0.495
+    #> # ℹ 3 more variables: pct_rx_mapd <dbl>, rx_change <dbl>, rx_pct_change <dbl>
 
 <br>
 
-### State
+## State
 
 ``` r
 # Medicare Beneficiaries
-levels(period = "year", level = "state", group = "total") |> 
-  dplyr::arrange(state, year, dplyr::desc(bene_tot)) |> 
-  print(n = 50)
+total_state_yr <- levels(period = "year", level = "state", group = "total")
 ```
-
-    #> # A tibble: 285 × 6
-    #>     year state state_name           bene_tot bene_orig bene_ma_oth
-    #>    <int> <chr> <chr>                   <dbl>     <dbl>       <dbl>
-    #>  1  2017 AK    Alaska                  91879     90549        1330
-    #>  2  2018 AK    Alaska                  96213     94698        1514
-    #>  3  2019 AK    Alaska                 100297     98629        1668
-    #>  4  2020 AK    Alaska                 104465    102635        1830
-    #>  5  2021 AK    Alaska                 108167    105882        2285
-    #>  6  2017 AL    Alabama               1007423    640531      366892
-    #>  7  2018 AL    Alabama               1027493    624503      402990
-    #>  8  2019 AL    Alabama               1046588    605614      440974
-    #>  9  2020 AL    Alabama               1062565    576690      485875
-    #> 10  2021 AL    Alabama               1070553    529079      541474
-    #> 11  2017 AR    Arkansas               616231    480223      136008
-    #> 12  2018 AR    Arkansas               627641    476217      151424
-    #> 13  2019 AR    Arkansas               637556    468473      169083
-    #> 14  2020 AR    Arkansas               646920    453946      192975
-    #> 15  2021 AR    Arkansas               653386    430843      222544
-    #> 16  2017 AS    American Samoa           3989      3842         147
-    #> 17  2018 AS    American Samoa           4028      3823         205
-    #> 18  2019 AS    American Samoa           4569      4354         216
-    #> 19  2020 AS    American Samoa           4716      4446         269
-    #> 20  2021 AS    American Samoa           4765      4460         305
-    #> 21  2017 AZ    Arizona               1226671    753929      472743
-    #> 22  2018 AZ    Arizona               1271312    775111      496201
-    #> 23  2019 AZ    Arizona               1325833    789199      536634
-    #> 24  2020 AZ    Arizona               1370074    788009      582065
-    #> 25  2021 AZ    Arizona               1400409    767765      632643
-    #> 26  2017 CA    California            5965489   3473379     2492111
-    #> 27  2018 CA    California            6124095   3511605     2612490
-    #> 28  2019 CA    California            6277166   3528546     2748620
-    #> 29  2020 CA    California            6411106   3503899     2907207
-    #> 30  2021 CA    California            6501113   3438632     3062481
-    #> 31  2017 CO    Colorado               847702    530148      317554
-    #> 32  2018 CO    Colorado               881044    548114      332929
-    #> 33  2019 CO    Colorado               911545    530678      380867
-    #> 34  2020 CO    Colorado               938949    527895      411054
-    #> 35  2021 CO    Colorado               961765    518953      442812
-    #> 36  2017 CT    Connecticut            654718    469847      184871
-    #> 37  2018 CT    Connecticut            667724    421231      246493
-    #> 38  2019 CT    Connecticut            680357    398772      281585
-    #> 39  2020 CT    Connecticut            692023    382148      309875
-    #> 40  2021 CT    Connecticut            702579    363536      339044
-    #> 41  2017 DC    District of Columbia    91051     76569       14481
-    #> 42  2018 DC    District of Columbia    92528     76020       16508
-    #> 43  2019 DC    District of Columbia    94058     75614       18444
-    #> 44  2020 DC    District of Columbia    94126     73305       20822
-    #> 45  2021 DC    District of Columbia    94070     70236       23833
-    #> 46  2017 DE    Delaware               193585    171150       22435
-    #> 47  2018 DE    Delaware               201092    173181       27911
-    #> 48  2019 DE    Delaware               208278    174473       33805
-    #> 49  2020 DE    Delaware               215724    174831       40893
-    #> 50  2021 DE    Delaware               222850    171170       51680
-    #> # ℹ 235 more rows
 
 ``` r
 # Aged Beneficiaries
-levels(period = "year", level = "state", group = "aged")
+aged_state_yr <- levels(period = "year", level = "state", group = "aged")
 ```
-
-    #> # A tibble: 285 × 7
-    #>     year state state_name           bene_tot bene_aged_tot bene_aged_esrd
-    #>    <int> <chr> <chr>                   <dbl>         <dbl>          <dbl>
-    #>  1  2017 AL    Alabama               1007423        781833           4987
-    #>  2  2017 AK    Alaska                  91879         79278            293
-    #>  3  2017 AZ    Arizona               1226671       1072328           5361
-    #>  4  2017 AR    Arkansas               616231        480992           2377
-    #>  5  2017 CA    California            5965489       5268082          36785
-    #>  6  2017 CO    Colorado               847702        745182           2593
-    #>  7  2017 CT    Connecticut            654718        572564           2546
-    #>  8  2017 DE    Delaware               193585        166603            949
-    #>  9  2017 DC    District of Columbia    91051         76007            979
-    #> 10  2017 FL    Florida               4295216       3747063          18045
-    #> # ℹ 275 more rows
-    #> # ℹ 1 more variable: bene_aged_no_esrd <dbl>
 
 ``` r
 # Disabled Beneficiaries
-levels(period = "year", level = "state", group = "disabled")
+dsb_state_yr <- levels(period = "year", level = "state", group = "disabled")
 ```
-
-    #> # A tibble: 285 × 7
-    #>     year state state_name           bene_tot bene_dsb_tot bene_dsb_esrd_and_on…¹
-    #>    <int> <chr> <chr>                   <dbl>        <dbl>                  <dbl>
-    #>  1  2017 AL    Alabama               1007423       225590                   5685
-    #>  2  2017 AK    Alaska                  91879        12601                    369
-    #>  3  2017 AZ    Arizona               1226671       154344                   4979
-    #>  4  2017 AR    Arkansas               616231       135239                   2710
-    #>  5  2017 CA    California            5965489       697407                  28986
-    #>  6  2017 CO    Colorado               847702       102520                   2503
-    #>  7  2017 CT    Connecticut            654718        82153                   2057
-    #>  8  2017 DE    Delaware               193585        26982                    853
-    #>  9  2017 DC    District of Columbia    91051        15044                    984
-    #> 10  2017 FL    Florida               4295216       548153                  15765
-    #> # ℹ 275 more rows
-    #> # ℹ abbreviated name: ¹​bene_dsb_esrd_and_only_esrd
-    #> # ℹ 1 more variable: bene_dsb_no_esrd <dbl>
 
 ``` r
 # Beneficiaries with Hospital (Part A) and Supplementary (Part B)
-levels(period = "year", level = "state", group = "partAB")
+partAB_state_yr <- levels(period = "year", level = "state", group = "partAB")
 ```
-
-    #> # A tibble: 285 × 7
-    #>     year state state_name     bene_tot bene_ab_total bene_ab_orig bene_ab_ma_oth
-    #>    <int> <chr> <chr>             <dbl>         <dbl>        <dbl>          <dbl>
-    #>  1  2017 AL    Alabama         1007423        935026       568207         366819
-    #>  2  2017 AK    Alaska            91879         80134        78805           1329
-    #>  3  2017 AZ    Arizona         1226671       1122760       650109         472650
-    #>  4  2017 AR    Arkansas         616231        572605       436607         135999
-    #>  5  2017 CA    California      5965489       5314498      2825802        2488697
-    #>  6  2017 CO    Colorado         847702        764106       448313         315793
-    #>  7  2017 CT    Connecticut      654718        587661       402823         184838
-    #>  8  2017 DE    Delaware         193585        179142       156719          22423
-    #>  9  2017 DC    District of C…    91051         74444        60015          14429
-    #> 10  2017 FL    Florida         4295216       4026464      2199974        1826490
-    #> # ℹ 275 more rows
 
 ``` r
 # Prescription Drug (Part D) Beneficiaries
-levels(period = "year", level = "state", group = "partD")
+partD_state_yr <- levels(period = "year", level = "state", group = "partD")
 ```
-
-    #> # A tibble: 285 × 7
-    #>     year state state_name     bene_tot bene_ab_total bene_ab_orig bene_ab_ma_oth
-    #>    <int> <chr> <chr>             <dbl>         <dbl>        <dbl>          <dbl>
-    #>  1  2017 AL    Alabama         1007423        935026       568207         366819
-    #>  2  2017 AK    Alaska            91879         80134        78805           1329
-    #>  3  2017 AZ    Arizona         1226671       1122760       650109         472650
-    #>  4  2017 AR    Arkansas         616231        572605       436607         135999
-    #>  5  2017 CA    California      5965489       5314498      2825802        2488697
-    #>  6  2017 CO    Colorado         847702        764106       448313         315793
-    #>  7  2017 CT    Connecticut      654718        587661       402823         184838
-    #>  8  2017 DE    Delaware         193585        179142       156719          22423
-    #>  9  2017 DC    District of C…    91051         74444        60015          14429
-    #> 10  2017 FL    Florida         4295216       4026464      2199974        1826490
-    #> # ℹ 275 more rows
 
 <br>
 
-### County
+## County
 
 ``` r
 # Medicare Beneficiaries
-levels(period = "year", level = "county", group = "total")
+total_county_yr <- levels(period = "year", level = "county", group = "total")
 ```
-
-    #> # A tibble: 16,113 × 7
-    #>     year state state_name county   bene_tot bene_orig bene_ma_oth
-    #>    <int> <chr> <chr>      <chr>       <dbl>     <dbl>       <dbl>
-    #>  1  2017 AL    Alabama    Autauga     10510      5784        4725
-    #>  2  2017 AL    Alabama    Baldwin     48910     28388       20522
-    #>  3  2017 AL    Alabama    Barbour      6275      4372        1903
-    #>  4  2017 AL    Alabama    Bibb         4840      2480        2360
-    #>  5  2017 AL    Alabama    Blount      12286      6070        6215
-    #>  6  2017 AL    Alabama    Bullock      2008      1259         749
-    #>  7  2017 AL    Alabama    Butler       4755      3748        1007
-    #>  8  2017 AL    Alabama    Calhoun     27024     20110        6914
-    #>  9  2017 AL    Alabama    Chambers     8722      6492        2230
-    #> 10  2017 AL    Alabama    Cherokee     6943      4701        2242
-    #> # ℹ 16,103 more rows
 
 ``` r
 # Aged Beneficiaries
-levels(period = "year", level = "county", group = "aged")
+aged_county_yr <- levels(period = "year", level = "county", group = "aged")
 ```
-
-    #> # A tibble: 16,113 × 8
-    #>     year state state_name county   bene_tot bene_aged_tot bene_aged_esrd
-    #>    <int> <chr> <chr>      <chr>       <dbl>         <dbl>          <dbl>
-    #>  1  2017 AL    Alabama    Autauga     10510          8046             48
-    #>  2  2017 AL    Alabama    Baldwin     48910         41590            146
-    #>  3  2017 AL    Alabama    Barbour      6275          4706             52
-    #>  4  2017 AL    Alabama    Bibb         4840          3389             21
-    #>  5  2017 AL    Alabama    Blount      12286          9542             38
-    #>  6  2017 AL    Alabama    Bullock      2008          1434             20
-    #>  7  2017 AL    Alabama    Butler       4755          3571             30
-    #>  8  2017 AL    Alabama    Calhoun     27024         20142            125
-    #>  9  2017 AL    Alabama    Chambers     8722          6342             61
-    #> 10  2017 AL    Alabama    Cherokee     6943          5195             38
-    #> # ℹ 16,103 more rows
-    #> # ℹ 1 more variable: bene_aged_no_esrd <dbl>
 
 ``` r
 # Disabled Beneficiaries
-levels(period = "year", level = "county", group = "disabled")
+dsb_county_yr <- levels(period = "year", level = "county", group = "disabled")
 ```
-
-    #> # A tibble: 16,113 × 8
-    #>     year state state_name county   bene_tot bene_dsb_tot bene_dsb_esrd_and_onl…¹
-    #>    <int> <chr> <chr>      <chr>       <dbl>        <dbl>                   <dbl>
-    #>  1  2017 AL    Alabama    Autauga     10510         2463                      56
-    #>  2  2017 AL    Alabama    Baldwin     48910         7320                     113
-    #>  3  2017 AL    Alabama    Barbour      6275         1569                      54
-    #>  4  2017 AL    Alabama    Bibb         4840         1451                      34
-    #>  5  2017 AL    Alabama    Blount      12286         2744                      22
-    #>  6  2017 AL    Alabama    Bullock      2008          574                      15
-    #>  7  2017 AL    Alabama    Butler       4755         1184                      45
-    #>  8  2017 AL    Alabama    Calhoun     27024         6882                     141
-    #>  9  2017 AL    Alabama    Chambers     8722         2380                      53
-    #> 10  2017 AL    Alabama    Cherokee     6943         1748                      25
-    #> # ℹ 16,103 more rows
-    #> # ℹ abbreviated name: ¹​bene_dsb_esrd_and_only_esrd
-    #> # ℹ 1 more variable: bene_dsb_no_esrd <dbl>
 
 ``` r
 # Beneficiaries with Hospital (Part A) and Supplementary (Part B)
-levels(period = "year", level = "county", group = "partAB")
+partAB_county_yr <- levels(period = "year", level = "county", group = "partAB")
 ```
-
-    #> # A tibble: 16,113 × 8
-    #>     year state state_name county   bene_tot bene_ab_total bene_ab_orig
-    #>    <int> <chr> <chr>      <chr>       <dbl>         <dbl>        <dbl>
-    #>  1  2017 AL    Alabama    Autauga     10510          9810         5085
-    #>  2  2017 AL    Alabama    Baldwin     48910         45818        25302
-    #>  3  2017 AL    Alabama    Barbour      6275          5878         3975
-    #>  4  2017 AL    Alabama    Bibb         4840          4553         2194
-    #>  5  2017 AL    Alabama    Blount      12286         11570         5355
-    #>  6  2017 AL    Alabama    Bullock      2008          1840         1091
-    #>  7  2017 AL    Alabama    Butler       4755          4464         3457
-    #>  8  2017 AL    Alabama    Calhoun     27024         24953        18039
-    #>  9  2017 AL    Alabama    Chambers     8722          8221         5990
-    #> 10  2017 AL    Alabama    Cherokee     6943          6602         4360
-    #> # ℹ 16,103 more rows
-    #> # ℹ 1 more variable: bene_ab_ma_oth <dbl>
 
 ``` r
 # Prescription Drug (Part D) Beneficiaries
-levels(period = "year", level = "county", group = "partD")
+partD_county_yr <- levels(period = "year", level = "county", group = "partD")
 ```
 
-    #> # A tibble: 16,113 × 8
-    #>     year state state_name county   bene_tot bene_rx_tot bene_rx_pdp bene_rx_mapd
-    #>    <int> <chr> <chr>      <chr>       <dbl>       <dbl>       <dbl>        <dbl>
-    #>  1  2017 AL    Alabama    Autauga     10510        7009        2396         4613
-    #>  2  2017 AL    Alabama    Baldwin     48910       34959       15298        19661
-    #>  3  2017 AL    Alabama    Barbour      6275        4649        2828         1821
-    #>  4  2017 AL    Alabama    Bibb         4840        3602        1403         2199
-    #>  5  2017 AL    Alabama    Blount      12286        9583        3523         6060
-    #>  6  2017 AL    Alabama    Bullock      2008        1571         841          730
-    #>  7  2017 AL    Alabama    Butler       4755        3592        2626          966
-    #>  8  2017 AL    Alabama    Calhoun     27024       16854       10498         6355
-    #>  9  2017 AL    Alabama    Chambers     8722        6392        4213         2180
-    #> 10  2017 AL    Alabama    Cherokee     6943        5228        3275         1953
-    #> # ℹ 16,103 more rows
+# Month
 
-## Month
-
-### National
+## National
 
 ``` r
 # Medicare Beneficiaries
@@ -497,7 +349,7 @@ levels(period = "month", level = "national", group = "partD")
     #> 11  2022 June      64744497    50190877    23365123     26825754
     #> 12  2022 July      64831706    50343344    23365035     26978309
 
-### State
+## State
 
 ``` r
 # Medicare Beneficiaries
@@ -603,7 +455,7 @@ levels(period = "month", level = "state", group = "partD")
     #> 10  2021 August FL    Florida       4818048     3799169     1465730      2333439
     #> # ℹ 674 more rows
 
-### County
+## County
 
 ``` r
 # Medicare Beneficiaries

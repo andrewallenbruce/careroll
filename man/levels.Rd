@@ -25,6 +25,6 @@ Download and sort Medicare Beneficiary Enrollment Data
 }
 \examples{
 \dontrun{
-groups()
+levels()
 }
 }

@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
   out.width = "100%",
   fig.path  = "man/figures/README-"
 )
+options(scipen = 999)
 ```
 
 # {careroll}
@@ -42,128 +43,157 @@ remotes::install_github("andrewallenbruce/careroll", build_vignettes = TRUE)
 library(careroll)
 ```
 
-## Year
+# Yearly
 
-### National
+## National
 
-```{r}
-# Total Medicare Beneficiaries
-yr_nat_tot <- levels(period = "year", level = "national", group = "total") |> 
-  dplyr::select(!c(bene_orig, bene_ma_oth)) |> 
-  dplyr::mutate(chg_abs_tot = bene_tot - dplyr::lag(bene_tot, order_by = year),
-                chg_rel_tot = round(chg_abs_tot / dplyr::lag(bene_tot, order_by = year) * 100, digits = 2),
-                roll_mean = slider::slide_mean(bene_tot, before = 1)) |> 
-  dplyr::relocate(c("roll_mean", "chg_abs_tot", "chg_rel_tot"), .after = bene_tot)
-
-yr_nat_tot
-```
+### Total
 
 ```{r}
-levels(period = "year", level = "national", group = "total") |> 
-  dplyr::mutate(pct_orig = round((bene_orig / bene_tot) * 100, digits = 2),
-                pct_ma = round((bene_ma_oth / bene_tot) * 100, digits = 2)) |> 
-  dplyr::mutate(chg_abs_orig = bene_orig - dplyr::lag(bene_orig, order_by = year),
-                chg_rel_orig = round(chg_abs_orig / dplyr::lag(bene_orig, order_by = year) * 100, digits = 2)) |> 
-  dplyr::relocate(c("chg_abs_orig", "chg_rel_orig"), .after = bene_orig) |> 
-  dplyr::mutate(chg_abs_ma = bene_ma_oth - dplyr::lag(bene_ma_oth, order_by = year),
-                chg_rel_ma = round(chg_abs_ma / dplyr::lag(bene_ma_oth, order_by = year) * 100, digits = 2)) |> 
-  dplyr::relocate(c("chg_abs_ma", "chg_rel_ma"), .after = bene_ma_oth) |> 
-  dplyr::select(-bene_tot) |> 
-  dplyr::select(year, bene_orig, bene_ma_oth, dplyr::starts_with("pct"), dplyr::starts_with("chg_abs"), dplyr::starts_with("chg_rel"))
+total_yr <- levels(period = "year", level = "national", group = "total")
+
+total_yr |> 
+  dplyr::filter(year == 2017 | year == 2021) |> 
+  change_year(bene_tot)
+
+total_yr |> 
+  dplyr::mutate(rolling_mean = slider::slide_mean(bene_tot, before = 1)) |> 
+  change_year(bene_tot)
 ```
 
-
+### Orig & MA
 
 ```{r}
-# Aged Beneficiaries
-levels(period = "year", level = "national", group = "aged")
+origMA_yr <- levels(period = "year", level = "national", group = "origMA")
+
+origMA_yr |> 
+  dplyr::mutate(pct_orig = bene_orig / (bene_orig + bene_ma_oth),
+                pct_ma = bene_ma_oth / (bene_orig + bene_ma_oth)) |> 
+  change_year(bene_orig) |> 
+  dplyr::rename(orig_change = change_abs, orig_pct_change = change_pct) |> 
+  change_year(bene_ma_oth) |> 
+  dplyr::rename(ma_change = change_abs, ma_pct_change = change_pct)
 ```
+
+### Aged
 
 ```{r}
-# Disabled Beneficiaries
-levels(period = "year", level = "national", group = "disabled")
+aged_yr <- levels(period = "year", level = "national", group = "aged")
+
+aged_yr |> 
+  dplyr::mutate(pct_aged = bene_aged_tot / bene_tot,
+                pct_esrd = bene_aged_esrd / bene_aged_tot,
+                pct_no_esrd = bene_aged_no_esrd / bene_aged_tot) |> 
+  change_year(bene_aged_tot) |> 
+  dplyr::rename(aged_change = change_abs, aged_pct_change = change_pct)
 ```
 
+### Disabled
+
+```{r}
+dsb_yr <- levels(period = "year", level = "national", group = "disabled")
+
+dsb_yr |> 
+  dplyr::mutate(pct_dsb = bene_dsb_tot / bene_tot,
+                pct_dsb_esrd = bene_dsb_esrd_and_only_esrd / bene_dsb_tot,
+                pct_dsb_no_esrd = bene_dsb_no_esrd / bene_dsb_tot) |> 
+  change_year(bene_dsb_tot) |> 
+  dplyr::rename(dsb_change = change_abs, dsb_pct_change = change_pct)
+```
+
+### Part A & B
 
 ```{r}
 # Beneficiaries with Hospital (Part A) and Supplementary (Part B)
-levels(period = "year", level = "national", group = "partAB")
+partAB_yr <- levels(period = "year", level = "national", group = "partAB")
+
+partAB_yr |> 
+  dplyr::mutate(pct_ab = bene_ab_total / bene_tot,
+                pct_ab_orig = bene_ab_orig / bene_ab_total,
+                pct_ab_ma_oth = bene_ab_ma_oth / bene_ab_total) |> 
+  change_year(bene_ab_total) |> 
+  dplyr::rename(ab_change = change_abs, ab_pct_change = change_pct)
 ```
 
 
+### Part D
+
 ```{r}
 # Prescription Drug (Part D) Beneficiaries
-levels(period = "year", level = "national", group = "partD")
+partD_yr <- levels(period = "year", level = "national", group = "partD")
+
+partD_yr |> 
+  dplyr::mutate(pct_rx = bene_rx_tot / bene_tot,
+                pct_rx_pdp = bene_rx_pdp / bene_rx_tot,
+                pct_rx_mapd = bene_rx_mapd / bene_rx_tot) |> 
+  change_year(bene_rx_tot) |> 
+  dplyr::rename(rx_change = change_abs, rx_pct_change = change_pct)
 ```
 
 
 <br>
 
-### State
+## State
 
 ```{r}
 # Medicare Beneficiaries
-levels(period = "year", level = "state", group = "total") |> 
-  dplyr::arrange(state, year, dplyr::desc(bene_tot)) |> 
-  print(n = 50)
+total_state_yr <- levels(period = "year", level = "state", group = "total")
 ```
 
 ```{r}
 # Aged Beneficiaries
-levels(period = "year", level = "state", group = "aged")
+aged_state_yr <- levels(period = "year", level = "state", group = "aged")
 ```
 
 ```{r}
 # Disabled Beneficiaries
-levels(period = "year", level = "state", group = "disabled")
+dsb_state_yr <- levels(period = "year", level = "state", group = "disabled")
 ```
 
 ```{r}
 # Beneficiaries with Hospital (Part A) and Supplementary (Part B)
-levels(period = "year", level = "state", group = "partAB")
+partAB_state_yr <- levels(period = "year", level = "state", group = "partAB")
 ```
 
 ```{r}
 # Prescription Drug (Part D) Beneficiaries
-levels(period = "year", level = "state", group = "partD")
+partD_state_yr <- levels(period = "year", level = "state", group = "partD")
 ```
 
 
 <br>
 
-### County
+## County
 
 ```{r}
 # Medicare Beneficiaries
-levels(period = "year", level = "county", group = "total")
+total_county_yr <- levels(period = "year", level = "county", group = "total")
 ```
-
 
 ```{r}
 # Aged Beneficiaries
-levels(period = "year", level = "county", group = "aged")
+aged_county_yr <- levels(period = "year", level = "county", group = "aged")
 ```
 
 ```{r}
 # Disabled Beneficiaries
-levels(period = "year", level = "county", group = "disabled")
+dsb_county_yr <- levels(period = "year", level = "county", group = "disabled")
 ```
 
 ```{r}
 # Beneficiaries with Hospital (Part A) and Supplementary (Part B)
-levels(period = "year", level = "county", group = "partAB")
+partAB_county_yr <- levels(period = "year", level = "county", group = "partAB")
 ```
-
 
 ```{r}
 # Prescription Drug (Part D) Beneficiaries
-levels(period = "year", level = "county", group = "partD")
+partD_county_yr <- levels(period = "year", level = "county", group = "partD")
 ```
 
 
-## Month
+# Month
 
-### National
+## National
 
 ```{r}
 # Medicare Beneficiaries
@@ -194,7 +224,7 @@ levels(period = "month", level = "national", group = "partAB")
 levels(period = "month", level = "national", group = "partD")
 ```
 
-### State
+## State
 
 ```{r}
 # Medicare Beneficiaries
@@ -225,7 +255,7 @@ levels(period = "month", level = "state", group = "partAB")
 levels(period = "month", level = "state", group = "partD")
 ```
 
-### County
+## County
 
 
 ```{r}

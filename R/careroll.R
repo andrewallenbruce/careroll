@@ -42,9 +42,9 @@ careroll <- function() {
                   bene_rx_pdp                 = prscrptn_drug_pdp_benes,
                   bene_rx_mapd                = prscrptn_drug_mapd_benes) |>
     dplyr::mutate(fips = dplyr::na_if(fips, "")) |>
-    dplyr::mutate(dplyr::across(dplyr::contains("bene"), as.numeric)) |>
     dplyr::filter(state != "UK") |>
-    dplyr::filter(county != "Unknown")
+    dplyr::filter(county != "Unknown") |>
+    dplyr::mutate(dplyr::across(dplyr::contains("bene"), as.numeric))
 
 }
 
@@ -55,7 +55,7 @@ careroll <- function() {
 #' @return A `tibble`
 #' @examples
 #' \dontrun{
-#' groups()
+#' levels()
 #' }
 #' @autoglobal
 #' @export
@@ -71,7 +71,16 @@ levels <- function(period = c("year", "month"),
     return(careroll() |>
       dplyr::filter(month == "Year",
                     level == "National") |>
-          dplyr::select(year, bene_tot, bene_orig, bene_ma_oth))
+          dplyr::select(year, bene_tot))
+
+      }
+
+      if (group == "origMA") {
+
+        return(careroll() |>
+                 dplyr::filter(month == "Year",
+                               level == "National") |>
+                 dplyr::select(year, bene_orig, bene_ma_oth))
 
       }
 
@@ -112,10 +121,20 @@ levels <- function(period = c("year", "month"),
       if (group == "total") {
 
         return(careroll() |>
-          dplyr::filter(month == "Year",
-                        level == "State") |>
-          dplyr::select(year, state, state_name,
-                        bene_tot, bene_orig, bene_ma_oth))
+                 dplyr::filter(month == "Year",
+                               level == "State") |>
+                 dplyr::select(year, state, state_name,
+                               bene_tot))
+
+      }
+
+      if (group == "origMA") {
+
+        return(careroll() |>
+                 dplyr::filter(month == "Year",
+                               level == "State") |>
+                 dplyr::select(year, state, state_name,
+                               bene_orig, bene_ma_oth))
 
       }
 
@@ -321,3 +340,32 @@ levels <- function(period = c("year", "month"),
     }
   }
 }
+
+#' Download and sort Medicare Beneficiary Enrollment Data
+#' @param df year, month
+#' @param col national, state, county
+#' @return A `tibble`
+#' @examples
+#' \dontrun{
+#' change_year()
+#' }
+#' @autoglobal
+#' @export
+change_year <- function(df, col) {
+
+  df |>
+    dplyr::mutate(
+      change_abs = {{ col }} - dplyr::lag({{ col }}, order_by = year),
+      change_pct = change_abs / dplyr::lag({{ col }}, order_by = year))
+
+}
+
+# change_year <- function(df, col) {
+#
+#   df |>
+#     dplyr::mutate(
+#       "{{ col }}_change_abs" := {{ col }} - dplyr::lag({{ col }}, order_by = year),
+#       "{{ col }}_change_pct" := round("{{ col }}_change_abs" / dplyr::lag({{ col }},
+#                                                                           order_by = year) * 100, digits = 2))
+#
+# }
