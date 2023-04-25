@@ -20,6 +20,8 @@ Imports:
     tibble
 Suggests: 
     rmarkdown,
+    gt,
+    gtExtras,
     roxyglobals (>= 0.2.1)
 Remotes: 
     anthonynorth/roxyglobals

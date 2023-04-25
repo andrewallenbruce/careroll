@@ -45,6 +45,15 @@ library(careroll)
 
 # Yearly
 
+```{r}
+all <- careroll()
+
+all |> 
+  dplyr::filter(month == "Year", level == "National" | level == "State") |> 
+  dplyr::select(!c(month, county, fips))
+```
+
+
 ## National
 
 ### Total

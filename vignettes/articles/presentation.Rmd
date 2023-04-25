@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 options(scipen = 999)
 ```
 
-```{r setup}
+```{r}
 library(careroll)
 ```
 
@@ -41,7 +41,9 @@ total_yr |>
   gt::fmt_number(columns = c(change_abs), decimals = 0, force_sign = TRUE) |> 
   gt::fmt_percent(columns = change_pct, decimals = 2, force_sign = TRUE) |> 
   gt::sub_missing(columns = dplyr::everything(), missing_text = "--") |> 
-  gtExtras::gt_theme_538()
+  gt::cols_merge_n_pct(col_n = change_abs, col_pct = change_pct) |> 
+  gt::cols_label(bene_tot = "Medicare Beneficiaries", change_abs = "Yearly Change") |> 
+  gtExtras::gt_theme_nytimes()
 ```
 
 
@@ -54,14 +56,52 @@ total_yr |>
   gt::fmt_number(columns = c(change_abs), decimals = 0, force_sign = TRUE) |> 
   gt::fmt_percent(columns = change_pct, decimals = 2, force_sign = TRUE) |> 
   gt::sub_missing(columns = dplyr::everything(), missing_text = "--") |> 
-  gtExtras::gt_theme_538()
+  gt::cols_merge_n_pct(col_n = change_abs, col_pct = change_pct) |> 
+  gt::cols_label(bene_tot = "Total", rolling_mean = "Rolling Mean", change_abs = "Yearly Change") |> 
+  gtExtras::gt_theme_nytimes()
 ```
+
 
 ### Orig & MA
 
 ```{r}
 origMA_yr <- levels(period = "year", level = "national", group = "origMA")
 ```
+
+```{r}
+origMA_yr1 <- origMA_yr |> 
+  change_year(bene_orig) |> 
+  dplyr::rename(orig_change = change_abs, orig_pct_change = change_pct) |> 
+  change_year(bene_ma_oth) |> 
+  dplyr::rename(ma_change = change_abs, ma_pct_change = change_pct)
+
+origMA_yr2 <- origMA_yr |> 
+  dplyr::mutate(pct_orig = bene_orig / (bene_orig + bene_ma_oth),
+                pct_ma = bene_ma_oth / (bene_orig + bene_ma_oth)) |> 
+  dplyr::select(!c(bene_orig, bene_ma_oth)) |> 
+  tidyr::pivot_longer(!year, names_to = "measure", values_to = "pct") |> 
+  dplyr::group_by(year) |> 
+  dplyr::summarise(list_data = list(pct))
+
+dplyr::left_join(origMA_yr1, origMA_yr2) |> 
+  gt::gt() |> 
+  gt::fmt_number(columns = c(bene_orig, bene_ma_oth), decimals = 0) |> 
+  gt::fmt_number(columns = c(orig_change, ma_change), decimals = 0, force_sign = TRUE) |> 
+  gt::fmt_percent(columns = c(orig_pct_change, ma_pct_change), decimals = 2, force_sign = TRUE) |> 
+  gt::sub_missing(columns = dplyr::everything(), missing_text = "--") |> 
+  gt::cols_merge_n_pct(col_n = orig_change, col_pct = orig_pct_change) |> 
+  gt::cols_merge_n_pct(col_n = ma_change, col_pct = ma_pct_change) |> 
+  gt::cols_label(bene_orig = "Original", bene_ma_oth = "Advantage", orig_change = "Original", ma_change = "Advantage") |> 
+  gt::tab_spanner(label = "Beneficiary Totals", columns = c(bene_orig, bene_ma_oth)) |> 
+  gt::tab_spanner(label = "Yearly Change", columns = c(orig_change, ma_change)) |> 
+  gtExtras::gt_plt_bar_stack(column = list_data,
+                             labels = c("Original ", " Advantage"),
+                             palette = c("#ff4343", "#0a1c2b"),
+                             fmt_fn = scales::label_percent(accuracy = 0.01, suffix = " %")) |> 
+  gt::tab_header(title = gt::md("Medicare Beneficiary Enrollment from **2017 - 2021**"), subtitle = gt::md("Beneficiaries with **Original Medicare** or **Medicare Advantage**")) |> 
+  gtExtras::gt_theme_nytimes()
+```
+
 
 
 ```{r}
@@ -72,6 +112,7 @@ origMA_yr |>
   dplyr::rename(orig_change = change_abs, orig_pct_change = change_pct) |> 
   change_year(bene_ma_oth) |> 
   dplyr::rename(ma_change = change_abs, ma_pct_change = change_pct) |> 
+  ########## gt
   gt::gt() |> 
   gt::fmt_number(columns = c(bene_orig, bene_ma_oth), decimals = 0) |> 
   gt::fmt_number(columns = c(orig_change, ma_change), decimals = 0, force_sign = TRUE) |> 
@@ -83,7 +124,7 @@ origMA_yr |>
   gt::cols_merge_n_pct(col_n = orig_change, col_pct = orig_pct_change) |> 
   gt::cols_merge_n_pct(col_n = ma_change, col_pct = ma_pct_change) |> 
   gt::cols_label(bene_orig = "Original Medicare", bene_ma_oth = "Medicare Advantage", orig_change = "Original YOY Change", ma_change = "MA YOY Change") |> 
-  gtExtras::gt_theme_538()
+  gtExtras::gt_theme_nytimes()
 ```
 
 
@@ -146,3 +187,52 @@ dsb_yr |>
   gt::cols_label(bene_dsb_tot = "Disabled", bene_dsb_esrd_and_only_esrd = "Disabled with ESRD", bene_dsb_no_esrd = "Disabled without ESRD", dsb_change = "Disabled Change") |> 
   gtExtras::gt_theme_538()
 ```
+
+
+## Data Dictionary
+
+```{r echo=FALSE}
+tibble::tribble(
+  ~Description,                                                          ~Variable,         ~Definition,
+  "Year",                                                          "`Year`",          "Indicates the calendar year of Medicare enrollment",
+  "Month",                                                         "`Month`",           "Indicates the month of Medicare enrollment",
+  "Beneficiary State",                                             "`Bene_State`",       "Area of beneficiary residence",
+  "Beneficiary County",                                            "`Bene_County`",                    "County of beneficiary residence",
+  "Total Beneficiaries",                                           "`Tot_Benes`",                      "Count of all Medicare beneficiaries",
+  "Original Medicare Beneficiaries",                               "`Orgnl_Mdcr_Benes`",               "Count of all Original Medicare beneficiaries",
+  "Medicare Advantage and Other Health Plan Beneficiaries",         "`MA_and_Oth_Benes`",       "Count of all Medicare Advantage and Other Health Plan beneficiaries",
+  "Total Aged Beneficiaries",                                       "`Aged_Tot_Benes`",         "Count of Medicare aged beneficiaries",
+  "Aged ESRD Beneficiaries",                                        "`Aged_ESRD_Benes`",        "Count of Medicare aged beneficiaries with End Stage Renal Disease",
+  "Aged Beneficiaries Without ESRD",                                "`Aged_No_ESRD_Benes`",     "Count of Medicare aged beneficiaries without End Stage Renal Disease",
+  "Total Disabled Beneficiaries",                                   "`Dsbld_Tot_Benes`",               "Count of Medicare disabled beneficiaries",
+  "Disabled Beneficiaries with ESRD and ESRD Only Beneficiaries",  "`Dsbld_ESRD_and_ESRD_Only_Benes`", "Count of Medicare disabled beneficiaries with End Stage Renal Disease and beneficiaries with End Stage Renal Disease only",
+  
+  "Disabled Beneficiaries Without ESRD", "`Dsbld_No_ESRD_Benes`", "Count of Medicare disabled beneficiaries without End Stage Renal Disease",
+        "Total Medicare Part A and Part B Beneficiaries", "`A_B_Tot_Benes`", "Count of Medicare beneficiaries enrolled in Hospital Insurance (or Part A) and Supplementary Medical Insurance (or Part B)",
+        "Original Medicare Part A and Part B Beneficiaries", "`A_B_Orgnl_Mdcr_Benes`", "Count of Original Medicare beneficiaries enrolled in Hospital Insurance (or Part A) and Supplementary Medical Insurance (or Part B)",
+        "Medicare Advantage and Other Health Plan Part A and Part B Beneficiaries", "`A_B_MA_and_Oth_Benes`", "Count of Medicare Advantage and Other Health Plan beneficiaries enrolled in Hospital Insurance (or Part A) and Supplementary Medical Insurance (or Part B)",
+        "Total Medicare Part D beneficiaries", "`Prscrptn_Drug_Tot_Benes`", "Count of all Medicare Prescription Drug (or Part D) beneficiaries",
+        "Total Medicare Prescription Drug Plan beneficiaries", "`Prscrptn_Drug_PDP_Benes`", "Count of Medicare Prescription Drug (or Part D) beneficiaries enrolled in a Prescription Drug Plan",
+        "Total Medicare Advantage Prescription Drug Plan beneficiaries", "`Prscrptn_Drug_MAPD_Benes`", "Count of Medicare Prescription Drug (or Part D) beneficiaries enrolled in a Medicare Advantage Prescription Drug plan") |> 
+  dplyr::select(Variable, Description, Definition) |> 
+  gt::gt() |> 
+  gt::fmt_markdown(columns = Variable) |> 
+  gtExtras::gt_theme_nytimes() |> 
+  gtExtras::gt_merge_stack(col1 = Description, 
+                           col2 = Definition,
+                           small_cap = FALSE,
+                           font_size = c("16px", "14px"),
+                           font_weight = c("bold", "normal"),
+                           palette = c("black", "darkgray")) |> 
+  gt::opt_stylize(style = 4, color = "gray", add_row_striping = FALSE) |> 
+  gt::opt_table_lines(extent = "default") |> 
+  gt::opt_table_outline(style = "solid")
+
+```
+
+
+<br>
+
+## Related Links
+
+   - [Medicare Monthly Enrollment API](https://data.cms.gov/summary-statistics-on-beneficiary-enrollment/medicare-and-medicaid-reports/medicare-monthly-enrollment)
