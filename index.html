@@ -93,26 +93,30 @@
 <span></span>
 <span><span class="va">all</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">month</span> <span class="op">==</span> <span class="st">"Year"</span>, <span class="va">level</span> <span class="op">==</span> <span class="st">"National"</span> <span class="op">|</span> <span class="va">level</span> <span class="op">==</span> <span class="st">"State"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">month</span>, <span class="va">county</span>, <span class="va">fips</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 290 × 19</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     year level    state state_name  bene_tot bene_orig bene_ma_oth bene_aged_tot</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    &lt;int&gt; &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;         &lt;dbl&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  1  2017 National US    National    58457244  38667830    19789414      49678033</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2  2017 State    AL    Alabama      1007423    640531      366892        781833</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  3  2017 State    AK    Alaska         91879     90549        1330         79278</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  4  2017 State    AZ    Arizona      1226671    753929      472743       1072328</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  5  2017 State    AR    Arkansas      616231    480223      136008        480992</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  6  2017 State    CA    California   5965489   3473379     2492111       5268082</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  7  2017 State    CO    Colorado      847702    530148      317554        745182</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  8  2017 State    CT    Connecticut   654718    469847      184871        572564</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9  2017 State    DE    Delaware      193585    171150       22435        166603</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10  2017 State    DC    District o…    91051     76569       14481         76007</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # ℹ 280 more rows</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # ℹ 11 more variables: bene_aged_esrd &lt;dbl&gt;, bene_aged_no_esrd &lt;dbl&gt;,</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #   bene_dsb_tot &lt;dbl&gt;, bene_dsb_esrd_and_only_esrd &lt;dbl&gt;,</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #   bene_dsb_no_esrd &lt;dbl&gt;, bene_ab_total &lt;dbl&gt;, bene_ab_orig &lt;dbl&gt;,</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #   bene_ab_ma_oth &lt;dbl&gt;, bene_rx_tot &lt;dbl&gt;, bene_rx_pdp &lt;dbl&gt;,</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; #   bene_rx_mapd &lt;dbl&gt;</span></span></code></pre></div>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">state</span><span class="op">:</span><span class="va">state_name</span>, <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">ends_with</a></span><span class="op">(</span><span class="st">"_tot"</span><span class="op">)</span>, <span class="va">bene_orig</span>, <span class="va">bene_ma_oth</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">state</span>, <span class="va">state_name</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span></span>
+<span>    pct_orig <span class="op">=</span> <span class="va">bene_orig</span> <span class="op">/</span> <span class="va">bene_tot</span>,</span>
+<span>    pct_ma <span class="op">=</span> <span class="va">bene_ma_oth</span> <span class="op">/</span> <span class="va">bene_tot</span>,</span>
+<span>    pct_aged <span class="op">=</span> <span class="va">bene_aged_tot</span> <span class="op">/</span> <span class="va">bene_tot</span>,</span>
+<span>    pct_disabled <span class="op">=</span> <span class="va">bene_dsb_tot</span> <span class="op">/</span> <span class="va">bene_tot</span>,</span>
+<span>    pct_rx <span class="op">=</span> <span class="va">bene_rx_tot</span> <span class="op">/</span> <span class="va">bene_tot</span></span>
+<span>    <span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 290 × 8</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Groups:   year, state [290]</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     year state state_name           pct_orig pct_ma pct_aged pct_disabled pct_rx</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    &lt;int&gt; &lt;chr&gt; &lt;chr&gt;                   &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;  &lt;dbl&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  1  2017 AK    Alaska                  0.986 0.0145    0.863        0.137 0.401 </span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2  2017 AL    Alabama                 0.636 0.364     0.776        0.224 0.716 </span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  3  2017 AR    Arkansas                0.779 0.221     0.781        0.219 0.696 </span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  4  2017 AS    American Samoa          0.963 0.0369    0.691        0.309 0.0850</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  5  2017 AZ    Arizona                 0.615 0.385     0.874        0.126 0.733 </span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  6  2017 CA    California              0.582 0.418     0.883        0.117 0.782 </span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  7  2017 CO    Colorado                0.625 0.375     0.879        0.121 0.722 </span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  8  2017 CT    Connecticut             0.718 0.282     0.875        0.125 0.772 </span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9  2017 DC    District of Columbia    0.841 0.159     0.835        0.165 0.593 </span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10  2017 DE    Delaware                0.884 0.116     0.861        0.139 0.741 </span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # ℹ 280 more rows</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="national">National<a class="anchor" aria-label="anchor" href="#national"></a>
 </h2>
@@ -132,7 +136,7 @@
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2  2021 63905513    5448269     0.0932</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">total_yr</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>rolling_mean <span class="op">=</span> <span class="fu">slider</span><span class="fu">::</span><span class="fu">slide_mean</span><span class="op">(</span><span class="va">bene_tot</span>, before <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>rolling_mean <span class="op">=</span> <span class="fu">slider</span><span class="fu">::</span><span class="fu"><a href="https://slider.r-lib.org/reference/summary-slide.html" class="external-link">slide_mean</a></span><span class="op">(</span><span class="va">bene_tot</span>, before <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="reference/change_year.html">change_year</a></span><span class="op">(</span><span class="va">bene_tot</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 5</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    year bene_tot rolling_mean change_abs change_pct</span></span>
