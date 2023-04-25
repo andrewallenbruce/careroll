@@ -1,0 +1,10 @@
+pandoc: 2.19.2
+pkgdown: 2.0.7
+pkgdown_sha: ~
+articles:
+  presentation: presentation.html
+last_built: 2023-04-25T04:55Z
+urls:
+  reference: https://andrewallenbruce.github.io/careroll/reference
+  article: https://andrewallenbruce.github.io/careroll/articles
+
