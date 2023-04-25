@@ -32,28 +32,32 @@ all <- careroll()
 
 all |> 
   dplyr::filter(month == "Year", level == "National" | level == "State") |> 
-  dplyr::select(!c(month, county, fips))
+  dplyr::select(year, state:state_name, dplyr::ends_with("_tot"), bene_orig, bene_ma_oth) |> 
+  dplyr::group_by(year, state, state_name) |> 
+  dplyr::summarise(
+    pct_orig = bene_orig / bene_tot,
+    pct_ma = bene_ma_oth / bene_tot,
+    pct_aged = bene_aged_tot / bene_tot,
+    pct_disabled = bene_dsb_tot / bene_tot,
+    pct_rx = bene_rx_tot / bene_tot
+    )
 ```
 
-    #> # A tibble: 290 × 19
-    #>     year level    state state_name  bene_tot bene_orig bene_ma_oth bene_aged_tot
-    #>    <int> <chr>    <chr> <chr>          <dbl>     <dbl>       <dbl>         <dbl>
-    #>  1  2017 National US    National    58457244  38667830    19789414      49678033
-    #>  2  2017 State    AL    Alabama      1007423    640531      366892        781833
-    #>  3  2017 State    AK    Alaska         91879     90549        1330         79278
-    #>  4  2017 State    AZ    Arizona      1226671    753929      472743       1072328
-    #>  5  2017 State    AR    Arkansas      616231    480223      136008        480992
-    #>  6  2017 State    CA    California   5965489   3473379     2492111       5268082
-    #>  7  2017 State    CO    Colorado      847702    530148      317554        745182
-    #>  8  2017 State    CT    Connecticut   654718    469847      184871        572564
-    #>  9  2017 State    DE    Delaware      193585    171150       22435        166603
-    #> 10  2017 State    DC    District o…    91051     76569       14481         76007
+    #> # A tibble: 290 × 8
+    #> # Groups:   year, state [290]
+    #>     year state state_name           pct_orig pct_ma pct_aged pct_disabled pct_rx
+    #>    <int> <chr> <chr>                   <dbl>  <dbl>    <dbl>        <dbl>  <dbl>
+    #>  1  2017 AK    Alaska                  0.986 0.0145    0.863        0.137 0.401 
+    #>  2  2017 AL    Alabama                 0.636 0.364     0.776        0.224 0.716 
+    #>  3  2017 AR    Arkansas                0.779 0.221     0.781        0.219 0.696 
+    #>  4  2017 AS    American Samoa          0.963 0.0369    0.691        0.309 0.0850
+    #>  5  2017 AZ    Arizona                 0.615 0.385     0.874        0.126 0.733 
+    #>  6  2017 CA    California              0.582 0.418     0.883        0.117 0.782 
+    #>  7  2017 CO    Colorado                0.625 0.375     0.879        0.121 0.722 
+    #>  8  2017 CT    Connecticut             0.718 0.282     0.875        0.125 0.772 
+    #>  9  2017 DC    District of Columbia    0.841 0.159     0.835        0.165 0.593 
+    #> 10  2017 DE    Delaware                0.884 0.116     0.861        0.139 0.741 
     #> # ℹ 280 more rows
-    #> # ℹ 11 more variables: bene_aged_esrd <dbl>, bene_aged_no_esrd <dbl>,
-    #> #   bene_dsb_tot <dbl>, bene_dsb_esrd_and_only_esrd <dbl>,
-    #> #   bene_dsb_no_esrd <dbl>, bene_ab_total <dbl>, bene_ab_orig <dbl>,
-    #> #   bene_ab_ma_oth <dbl>, bene_rx_tot <dbl>, bene_rx_pdp <dbl>,
-    #> #   bene_rx_mapd <dbl>
 
 ## National
 

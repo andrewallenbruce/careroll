@@ -21,6 +21,41 @@ options(scipen = 999)
 library(careroll)
 ```
 
+```{r}
+all <- careroll()
+
+all |> 
+  dplyr::filter(month == "Year", level == "National" | level == "State") |> 
+  dplyr::select(year, state:state_name, dplyr::ends_with("_tot"), bene_orig, bene_ma_oth) |> 
+  dplyr::group_by(year, state_name) |> 
+  dplyr::summarise(
+    bene_total = round(bene_tot),
+    pct_orig = bene_orig / bene_tot,
+    pct_ma = bene_ma_oth / bene_tot,
+    pct_aged = bene_aged_tot / bene_tot,
+    pct_disabled = bene_dsb_tot / bene_tot,
+    pct_rx = bene_rx_tot / bene_tot) |> 
+  dplyr::arrange(year, dplyr::desc(pct_orig)) |> 
+  gt::gt() |> 
+  gt::fmt_percent(columns = c(pct_orig, pct_ma, pct_aged, pct_disabled, pct_rx), decimals = 2) |> 
+  gt::sub_missing(columns = dplyr::everything(), missing_text = "--") |> 
+  gt::cols_label(state_name = "State",
+                 bene_total = "Total Beneficiaries",
+                 pct_orig = "Original Medicare",
+                 pct_ma = "Medicare Advantage",
+                 pct_aged = "Aged",
+                 pct_disabled = "Disabled",
+                 pct_rx = "Part D") |> 
+  gtExtras::gt_duplicate_column(pct_orig, dupe_name = "point_plot") |> 
+  gtExtras::gt_plt_point(point_plot, accuracy = .1, width = 40) |> 
+  gt::fmt_number(bene_total, suffixing = TRUE, decimals = 1) |> 
+  gtExtras::gt_highlight_rows(
+     rows = state_name == "National",
+     fill = "lightgrey",
+     bold_target_only = TRUE, target_col = state_name) |> 
+  gtExtras::gt_theme_538()
+```
+
 # Yearly
 
 ## National

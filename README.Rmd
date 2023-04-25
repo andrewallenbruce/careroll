@@ -50,7 +50,15 @@ all <- careroll()
 
 all |> 
   dplyr::filter(month == "Year", level == "National" | level == "State") |> 
-  dplyr::select(!c(month, county, fips))
+  dplyr::select(year, state:state_name, dplyr::ends_with("_tot"), bene_orig, bene_ma_oth) |> 
+  dplyr::group_by(year, state, state_name) |> 
+  dplyr::summarise(
+    pct_orig = bene_orig / bene_tot,
+    pct_ma = bene_ma_oth / bene_tot,
+    pct_aged = bene_aged_tot / bene_tot,
+    pct_disabled = bene_dsb_tot / bene_tot,
+    pct_rx = bene_rx_tot / bene_tot
+    )
 ```
 
 

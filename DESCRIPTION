@@ -22,6 +22,8 @@ Suggests:
     rmarkdown,
     gt,
     gtExtras,
+    slider,
+    svglite,
     roxyglobals (>= 0.2.1)
 Remotes: 
     anthonynorth/roxyglobals
